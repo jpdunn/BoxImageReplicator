@@ -1,0 +1,55 @@
+trigger:
+  - main
+  - develop
+  - releases/*
+
+pr:
+  - main
+  - develop
+  - releases/*
+
+pool:
+  vmImage: ubuntu-22.04
+
+name: $(Build.BuildId)_$(SourceBranchName)
+
+stages:
+  - stage: Build
+    jobs:
+      - template: cicd/build-job.yml
+  
+  - stage: DevelopmentDeployment
+    condition: and(succeeded(), ne(variables['Build.Reason'],'PullRequest'))
+    dependsOn: Build
+    variables:
+    - group: box-replication-dev
+    - group: dev-aus-terraform-generated
+    jobs: 
+      - deployment: DeployDevelopment
+        environment: development
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: cicd/deployment-job.yml
+                  parameters:
+                    AzureServiceConnection: "ServiceConnection-Dev"
+                    AppName: "BoxReplication-devaus"
+  
+  - stage: ProductionDeployment
+    condition: and(succeeded(), ne(variables['Build.Reason'],'PullRequest'))
+    dependsOn: DevelopmentDeployment
+    variables:
+    - group: box-replication-prod
+    - group: prod-aus-terraform-generated
+    jobs: 
+      - deployment: DeployProduction
+        environment: production
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - template: cicd/deployment-job.yml
+                  parameters:
+                    AzureServiceConnection: "ServiceConnection-Prod"
+                    AppName: "BoxReplication-prodaus"

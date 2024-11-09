@@ -1,0 +1,41 @@
+jobs:
+- job: Build
+  steps:
+  - checkout: self
+    clean: true
+
+  - task: DotNetCoreCLI@2
+    displayName: Restore
+    inputs:
+      command: restore
+      projects: '**/*.csproj'
+      feedsToUse: 'config'
+      nugetConfigPath: 'src/nuget.config'
+
+  - task: DotNetCoreCLI@2
+    displayName: Build
+    inputs:
+      command: build
+      projects: '**/*.csproj'
+      arguments: '--configuration Release --no-restore'
+
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: publish
+      arguments: '--configuration Release --output publish_output'
+      projects: '**/*.csproj'
+      publishWebProjects: false
+      modifyOutputPath: false
+      zipAfterPublish: false
+
+  - task: ArchiveFiles@2
+    displayName: "Archive files"
+    inputs:
+      rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output"
+      includeRootFolder: false
+      archiveFile: "$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip"
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
+      artifactName: 'drop'

@@ -1,0 +1,12 @@
+{
+    "IsEncrypted": false,
+    "Values": {
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+        "MySettings:EnterpriseID": "",
+        "MySettings:UploadFolderID": "",
+        "MySettings:ClientID": "",
+        "MySettings:ClientSecret": "",
+        "MySettings:StorageAccountConnectionString": ""
+    }
+}

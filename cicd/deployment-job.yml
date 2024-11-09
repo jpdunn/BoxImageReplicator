@@ -1,0 +1,52 @@
+parameters:
+- name: AzureServiceConnection
+  type: string
+
+- name: AppName
+  type: string
+
+steps:
+  - download: current
+    displayName: Download published code artifact
+    artifact: drop
+
+  - task: AzureFunctionApp@2
+    inputs:
+      azureSubscription: '${{parameters.AzureServiceConnection}}'
+      appName: '${{parameters.AppName}}'
+      appType: functionApp
+      package: $(Pipeline.Workspace)/**/*.zip
+      deploymentMethod: 'zipDeploy'
+  
+  - task: AzureAppServiceSettings@1
+    displayName: 'Update App Settings'
+    inputs:
+      azureSubscription: '${{parameters.AzureServiceConnection}}'
+      appName: '${{parameters.AppName}}'
+      appSettings: |
+        [
+          {
+            "name": "WEBSITE_RUN_FROM_PACKAGE",
+            "value": "1"
+          },
+          {
+            "name": "MySettings:EnterpriseID",
+            "value": "$(Box_EnterpriseId)"
+          },
+          {
+            "name": "MySettings:ClientID",
+            "value": "$(Box_ClientId)"
+          },
+          {
+            "name": "MySettings:ClientSecret",
+            "value": "$(Box_ClientSecret)"
+          },
+          {
+            "name": "MySettings:UploadFolderID",
+            "value": "$(Box_UploadFolderId)"
+          },
+          {
+            "name": "MySettings:StorageAccountConnectionString",
+            "value": "$(azure_storage_blob_connection_string)"
+          }
+        ]
